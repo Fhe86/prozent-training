@@ -836,7 +836,7 @@ h1, h2, h3, .schrift { font-family: "Delius", "Comic Neue", "Avenir Next", sans-
   }
 
   function kalk(r, stufe) {
-    const arten = stufe === 1 ? ["vor"] : stufe === 2 ? ["vor", "vor", "rueck", "faktor"] : ["vor", "rueck", "gewinnP", "gewinnP"];
+    const arten = stufe === 1 ? ["vor", "rueck"] : stufe === 2 ? ["vor", "rueck", "rueck", "faktor"] : ["vor", "rueck", "rueck", "gewinnP"];
     const art = pick(r, arten);
     const verlust = stufe === 3 && art !== "gewinnP" ? r() < 0.5 : stufe === 2 && art === "vor" ? r() < 0.25 : art === "gewinnP" ? r() < 0.3 : false;
     const k = kalkZiehen(r, verlust);
@@ -877,14 +877,15 @@ h1, h2, h3, .schrift { font-family: "Delius", "Comic Neue", "Avenir Next", sans-
 
     if (art === "rueck") {
       const fehlNvp = rund(k.bvp * (1 - UST / 100)), fehlSk = rund(k.nvp * (1 + (verlust ? k.p : -k.p) / 100)), fehlEk = rund(k.sk * (1 - k.h / 100));
+      const g1 = stufe === 1;
       return {
-        titel: `${k.l.w} rückwärts`, layout: "bon",
+        titel: `${k.l.w} rückwärts`, layout: "bon", nacheinander: g1,
         szene: szeneBon(k.bvp, "Bruttoverkaufspreis"),
         text: `${kopf} Der Ladenpreis ist <b>${euro(k.bvp)}</b>. Rechne das Schema von unten nach oben zurück bis zum Einkaufspreis.`,
         teile: [
-          feld("r0", "Nettoverkaufspreis", k.nvp, "€", { fehler: [{ wert: fehlNvp, tol: 0.011, msg: `Du hast 19 % abgezogen. Aber der Bruttoverkaufspreis ist 119 %, nicht 100 %. Teile durch 1,19.` }] }),
-          feld("r1", "Selbstkosten", k.sk, "€", { fehler: [{ wert: fehlSk, tol: 0.011, msg: `Der Nettoverkaufspreis ist ${verlust ? 100 - k.p : 100 + k.p} % der Selbstkosten. Teile durch ${zahl(fG)}.` }] }),
-          feld("r2", "Einkaufspreis", k.EK, "€", { fehler: [{ wert: fehlEk, tol: 0.011, msg: `Die Selbstkosten sind ${100 + k.h} % vom Einkaufspreis. Teile durch ${zahl(fH)}.` }] })
+          feld("r0", "Nettoverkaufspreis", k.nvp, "€", { hilfe: g1 ? `Der Ladenpreis sind 119 % vom Nettoverkaufspreis. Rechne ${euro(k.bvp)} : 1,19.` : "", fehler: [{ wert: fehlNvp, tol: 0.011, msg: `Du hast 19 % abgezogen. Aber der Bruttoverkaufspreis ist 119 %, nicht 100 %. Teile durch 1,19.` }] }),
+          feld("r1", "Selbstkosten", k.sk, "€", { hilfe: g1 ? `Der Nettoverkaufspreis sind ${100 + k.p} % der Selbstkosten. Teile durch ${zahl(fG)}.` : "", fehler: [{ wert: fehlSk, tol: 0.011, msg: `Der Nettoverkaufspreis ist ${verlust ? 100 - k.p : 100 + k.p} % der Selbstkosten. Teile durch ${zahl(fG)}.` }] }),
+          feld("r2", "Einkaufspreis", k.EK, "€", { hilfe: g1 ? `Die Selbstkosten sind ${100 + k.h} % vom Einkaufspreis. Teile durch ${zahl(fH)}.` : "", fehler: [{ wert: fehlEk, tol: 0.011, msg: `Die Selbstkosten sind ${100 + k.h} % vom Einkaufspreis. Teile durch ${zahl(fH)}.` }] })
         ],
         weg: [`${euro(k.bvp)} : ${zahl(fU)} = ${euro(k.nvp)}`, `${euro(k.nvp)} : ${zahl(fG)} = ${euro(k.sk)}`, `${euro(k.sk)} : ${zahl(fH)} = ${euro(k.EK)}`],
         probe, zahlen: [k.bvp, k.h, k.p]
