@@ -807,6 +807,121 @@ h1, h2, h3, .schrift { font-family: "Delius", "Comic Neue", "Avenir Next", sans-
     };
   }
 
+  /* ---------- 8 Kalkulation: Einkaufspreis bis Bruttoverkaufspreis ---------- */
+  const LADEN = [
+    { n: "Sportgeschäft", der: "Das", w: "Inliner", akk: "ein Paar Inliner", b: [60, 80, 100, 120, 160] },
+    { n: "Musikgeschäft", der: "Das", w: "E-Gitarre", akk: "eine E-Gitarre", b: [200, 240, 300, 400, 500] },
+    { n: "Gartencenter", der: "Das", w: "Rasenmäher", akk: "einen Rasenmäher", b: [180, 200, 240, 300, 360] },
+    { n: "Spieleladen", der: "Der", w: "Brettspiel", akk: "ein Brettspiel", b: [20, 24, 30, 40] },
+    { n: "Elektronikmarkt", der: "Der", w: "Lautsprecher", akk: "einen Lautsprecher", b: [80, 100, 120, 160, 200] },
+    { n: "Fahrradladen", der: "Der", w: "Fahrradhelm", akk: "einen Fahrradhelm", b: [40, 50, 60, 80] },
+    { n: "Campingladen", der: "Der", w: "Zelt", akk: "ein Zelt", b: [100, 120, 160, 200, 250] }
+  ];
+  const K_H = [10, 15, 20, 25, 30];
+  const K_G = [10, 15, 20, 25, 30, 40];
+  const K_V = [10, 20, 25, 30, 40];
+  const UST = 19;
+
+  /* Rechnet das Schema in Cent. Nur Ziehungen mit glatten Cent-Beträgen in jeder Zeile. */
+  function kalkZiehen(r, verlust) {
+    for (;;) {
+      const l = pick(r, LADEN), EK = pick(r, l.b), h = pick(r, K_H), p = pick(r, verlust ? K_V : K_G);
+      const ek = EK * 100, hk = ek * h / 100, sk = ek + hk, gv = sk * p / 100;
+      if (!ganz(hk) || !ganz(gv)) continue;
+      const nvp = verlust ? sk - gv : sk + gv, ust = nvp * UST / 100;
+      if (!ganz(ust)) continue;
+      const c = x => x / 100;
+      return { l, EK, h, p, verlust, hk: c(hk), sk: c(sk), gv: c(gv), nvp: c(nvp), ust: c(ust), bvp: c(nvp + ust) };
+    }
+  }
+
+  function kalk(r, stufe) {
+    const arten = stufe === 1 ? ["vor"] : stufe === 2 ? ["vor", "vor", "rueck", "faktor"] : ["vor", "rueck", "gewinnP", "gewinnP"];
+    const art = pick(r, arten);
+    const verlust = stufe === 3 && art !== "gewinnP" ? r() < 0.5 : stufe === 2 && art === "vor" ? r() < 0.25 : art === "gewinnP" ? r() < 0.3 : false;
+    const k = kalkZiehen(r, verlust);
+    const gvName = verlust ? "Verlust" : "Gewinn", gvZ = verlust ? "−" : "+";
+    const fG = rund(1 + (verlust ? -k.p : k.p) / 100), fH = rund(1 + k.h / 100), fU = 1.19;
+    const probe = { typ: "kalk", art, EK: k.EK, h: k.h, p: k.p, verlust, werte: k };
+    const szeneBon = (start, startName) => ({ typ: "bon", firma: k.l.n, was: k.l.w, start: euro(start), startName });
+    const kopf = `${k.l.der} <b>${k.l.n}</b> kalkuliert mit <b>${k.h}&nbsp;%</b> Handlungskosten, <b>${k.p}&nbsp;%</b> ${gvName} und <b>${UST}&nbsp;%</b> Umsatzsteuer.`;
+
+    if (art === "vor") {
+      const g1 = stufe === 1;
+      const gesamt = rund(k.bvp / k.EK * 100 - 100, 4);
+      const gefragt = stufe === 3 && r() < 0.5;
+      const teile = [
+        feld("z0", `+ ${k.h} % Handlungskosten`, k.hk, "€", { egal: true, hilfe: g1 ? `Grundwert ist der Einkaufspreis: ${euro(k.EK)}.` : "" }),
+        feld("s0", "= Selbstkosten", k.sk, "€"),
+        feld("z1", `${gvZ} ${k.p} % ${gvName}`, k.gv, "€", { egal: true, hilfe: g1 ? `Grundwert sind jetzt die Selbstkosten: ${euro(k.sk)}.` : "", fehler: [{ wert: rund(k.EK * k.p / 100), msg: `Du hast vom Einkaufspreis gerechnet. Der ${gvName} bezieht sich auf die Selbstkosten (${euro(k.sk)}).` }] }),
+        feld("s1", "= Nettoverkaufspreis", k.nvp, "€", { fehler: verlust ? [{ wert: rund(k.sk + k.gv), msg: "Bei Verlust ziehst du ab, statt dazuzurechnen." }] : [] }),
+        feld("z2", `+ ${UST} % Umsatzsteuer`, k.ust, "€", { egal: true, hilfe: g1 ? `Grundwert ist der Nettoverkaufspreis: ${euro(k.nvp)}.` : "", fehler: [{ wert: rund(k.sk * UST / 100), msg: `Die Umsatzsteuer rechnet mit dem Nettoverkaufspreis (${euro(k.nvp)}), nicht mit den Selbstkosten.` }, { wert: rund(k.EK * UST / 100), msg: `Die Umsatzsteuer rechnet mit dem Nettoverkaufspreis (${euro(k.nvp)}), nicht mit dem Einkaufspreis.` }] }),
+        feld("s2", "= Bruttoverkaufspreis", k.bvp, "€")
+      ];
+      if (gefragt) teile.push(feld("g", "Um wie viel Prozent liegt der Bruttoverkaufspreis über dem Einkaufspreis? Runde auf eine Kommastelle.", gesamt, "%", { tol: 0.08, fehler: [{ wert: k.h + (verlust ? -k.p : k.p) + UST, tol: 0.001, msg: "Du hast die Prozente nur zusammengezählt. Jede Zeile hat aber einen neuen Grundwert. Rechne Bruttoverkaufspreis : Einkaufspreis." }] }));
+      return {
+        titel: `${k.l.w} kalkulieren`, layout: "bon", nacheinander: g1,
+        szene: szeneBon(k.EK, "Einkaufspreis"),
+        text: `${kopf} ${k.l.der === "Der" ? "Er" : "Es"} kauft ${k.l.akk} für <b>${euro(k.EK)}</b> ein. Fülle das Kalkulationsschema Zeile für Zeile aus. Beträge ohne Vorzeichen eintragen.`,
+        teile,
+        weg: [
+          `Handlungskosten: ${k.h} % von ${euro(k.EK)} = ${euro(k.hk)}, Selbstkosten ${euro(k.sk)}`,
+          `${gvName}: ${k.p} % von ${euro(k.sk)} = ${euro(k.gv)}, Nettoverkaufspreis ${euro(k.nvp)}`,
+          `Umsatzsteuer: ${UST} % von ${euro(k.nvp)} = ${euro(k.ust)}, Bruttoverkaufspreis ${euro(k.bvp)}`,
+          `Kurz mit Operatoren: ${zahl(k.EK)} · ${zahl(fH)} · ${zahl(fG)} · ${zahl(fU)} = ${euro(k.bvp)}`,
+          ...(gefragt ? [`${zahl(k.bvp)} : ${zahl(k.EK)} = ${zahl(rund(k.bvp / k.EK, 4))}, also ${zahl(gesamt)} %`] : [])
+        ],
+        probe: Object.assign(probe, { gefragt, gesamt }), zahlen: [k.EK, k.h, k.p]
+      };
+    }
+
+    if (art === "rueck") {
+      const fehlNvp = rund(k.bvp * (1 - UST / 100)), fehlSk = rund(k.nvp * (1 + (verlust ? k.p : -k.p) / 100)), fehlEk = rund(k.sk * (1 - k.h / 100));
+      return {
+        titel: `${k.l.w} rückwärts`, layout: "bon",
+        szene: szeneBon(k.bvp, "Bruttoverkaufspreis"),
+        text: `${kopf} Der Ladenpreis ist <b>${euro(k.bvp)}</b>. Rechne das Schema von unten nach oben zurück bis zum Einkaufspreis.`,
+        teile: [
+          feld("r0", "Nettoverkaufspreis", k.nvp, "€", { fehler: [{ wert: fehlNvp, tol: 0.011, msg: `Du hast 19 % abgezogen. Aber der Bruttoverkaufspreis ist 119 %, nicht 100 %. Teile durch 1,19.` }] }),
+          feld("r1", "Selbstkosten", k.sk, "€", { fehler: [{ wert: fehlSk, tol: 0.011, msg: `Der Nettoverkaufspreis ist ${verlust ? 100 - k.p : 100 + k.p} % der Selbstkosten. Teile durch ${zahl(fG)}.` }] }),
+          feld("r2", "Einkaufspreis", k.EK, "€", { fehler: [{ wert: fehlEk, tol: 0.011, msg: `Die Selbstkosten sind ${100 + k.h} % vom Einkaufspreis. Teile durch ${zahl(fH)}.` }] })
+        ],
+        weg: [`${euro(k.bvp)} : ${zahl(fU)} = ${euro(k.nvp)}`, `${euro(k.nvp)} : ${zahl(fG)} = ${euro(k.sk)}`, `${euro(k.sk)} : ${zahl(fH)} = ${euro(k.EK)}`],
+        probe, zahlen: [k.bvp, k.h, k.p]
+      };
+    }
+
+    if (art === "faktor") return {
+      titel: `${k.l.w}: mit Operatoren`,
+      szene: { typ: "maschine", ein: euro(k.EK), faktor: "3 Faktoren", aus: "?" },
+      text: `${kopf} Der Einkaufspreis ist <b>${euro(k.EK)}</b>. Rechne mit den drei Faktoren direkt zum Bruttoverkaufspreis.`,
+      teile: [
+        feld("f0", "Faktor für die Handlungskosten", fH, "", { tol: 1e-6, fehler: [{ wert: k.h / 100, tol: 1e-6, msg: "Das ist nur der Zuschlag. Der Faktor enthält die 100 % mit." }] }),
+        feld("f1", `Faktor für den ${gvName}`, fG, "", { tol: 1e-6, fehler: [{ wert: k.p / 100, tol: 1e-6, msg: "Das ist nur der Zuschlag. Der Faktor enthält die 100 % mit." }] }),
+        feld("f2", "Faktor für die Umsatzsteuer", fU, "", { tol: 1e-6, fehler: [{ wert: 0.19, tol: 1e-6, msg: "Das ist nur die Steuer. Der Faktor enthält die 100 % mit." }] }),
+        feld("a", "Bruttoverkaufspreis", k.bvp, "€", { fehler: [{ wert: rund(k.EK * (1 + (k.h + k.p + UST) / 100)), tol: 0.011, msg: "Du hast die Prozente zusammengezählt. Nimm die Faktoren nacheinander mal." }] })
+      ],
+      weg: [`Handlungskosten: ${zahl(fH)}, ${gvName}: ${zahl(fG)}, Umsatzsteuer: ${zahl(fU)}`, `${zahl(k.EK)} · ${zahl(fH)} · ${zahl(fG)} · ${zahl(fU)} = ${euro(k.bvp)}`],
+      probe, zahlen: [k.EK, k.h, k.p]
+    };
+
+    /* gewinnP: Einkaufspreis, Handlungskosten und Ladenpreis bekannt. Gewinn oder Verlust in Prozent gesucht. */
+    return {
+      titel: `${k.l.w}: Gewinn oder Verlust?`,
+      szene: szeneBon(k.EK, "Einkaufspreis"),
+      text: `${k.l.der} <b>${k.l.n}</b> kauft ${k.l.akk} für <b>${euro(k.EK)}</b> ein und rechnet mit <b>${k.h}&nbsp;%</b> Handlungskosten. Der Ladenpreis ist <b>${euro(k.bvp)}</b>, darin sind <b>${UST}&nbsp;%</b> Umsatzsteuer enthalten.`,
+      teile: [
+        feld("s0", "Selbstkosten", k.sk, "€"),
+        feld("r0", "Nettoverkaufspreis", k.nvp, "€", { fehler: [{ wert: rund(k.bvp * (1 - UST / 100)), tol: 0.011, msg: "Der Ladenpreis ist 119 %. Teile durch 1,19, statt 19 % abzuziehen." }] }),
+        wahl("t", "Macht das Geschäft Gewinn oder Verlust?", ["Gewinn", "Verlust"], verlust ? 1 : 0, { [verlust ? 0 : 1]: "Vergleiche Nettoverkaufspreis und Selbstkosten. Was ist größer?" }),
+        feld("d", `${gvName} in Euro`, k.gv, "€", { egal: true }),
+        feld("g", `${gvName} in Prozent der Selbstkosten`, k.p, "%", { egal: true, fehler: [{ wert: rund(k.gv / k.nvp * 100), tol: 0.06, msg: "Grundwert prüfen: Gewinn und Verlust rechnet man von den Selbstkosten." }, { wert: rund(k.gv / k.EK * 100), tol: 0.06, msg: "Grundwert prüfen: nicht der Einkaufspreis, sondern die Selbstkosten sind 100 %." }] })
+      ],
+      weg: [`Selbstkosten: ${euro(k.EK)} · ${zahl(fH)} = ${euro(k.sk)}`, `Nettoverkaufspreis: ${euro(k.bvp)} : ${zahl(fU)} = ${euro(k.nvp)}`, `${gvName}: ${euro(k.nvp)} − ${euro(k.sk)} = ${verlust ? "−" : ""}${euro(k.gv)}`, `${zahl(k.gv)} · 100 : ${zahl(k.sk)} = ${pz(k.p)}`],
+      probe, zahlen: [k.EK, k.h, k.bvp]
+    };
+  }
+
   /* ---------- Stationen ---------- */
   const STATIONEN = [
     { id: "preis", name: "Preis-Maschine", motto: "Faktor rein, Preis raus, auch rückwärts", tag: 1, f: preis },
@@ -815,7 +930,8 @@ h1, h2, h3, .schrift { font-family: "Delius", "Comic Neue", "Avenir Next", sans-
     { id: "detektei", name: "Detektei", motto: "Was wird gesucht? Erst denken, dann rechnen", tag: 1, f: detektei },
     { id: "promille", name: "Promille-Labor", motto: "Teile von Tausend", tag: 2, f: promille },
     { id: "lager", name: "Lager", motto: "Brutto, Netto, Tara auf die Waage", tag: 2, f: lager },
-    { id: "kreis", name: "Kreis-Studio", motto: "Von der Umfrage zum Kreisdiagramm", tag: 2, f: kreis }
+    { id: "kreis", name: "Kreis-Studio", motto: "Von der Umfrage zum Kreisdiagramm", tag: 2, f: kreis },
+    { id: "kalk", name: "Kalkulation", motto: "Vom Einkaufspreis zum Ladenpreis und zurück", tag: 3, extra: true, f: kalk }
   ];
 
   function erzeuge(stationId, stufe, r, opt) {
@@ -884,6 +1000,7 @@ h1, h2, h3, .schrift { font-family: "Delius", "Comic Neue", "Avenir Next", sans-
     detektei: `<svg class="bild" viewBox="0 0 80 80"><circle cx="34" cy="34" r="22" fill="#e4edfc" stroke="#14233d" stroke-width="4"/><path d="M50 50l20 20" stroke="#14233d" stroke-width="8" stroke-linecap="round"/><text x="34" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="#2563c9">%</text></svg>`,
     promille: `<svg class="bild" viewBox="0 0 80 80"><path d="M30 8h20M34 8v22L14 66a6 6 0 0 0 5 9h42a6 6 0 0 0 5-9L46 30V8" fill="#fff" stroke="#14233d" stroke-width="3" stroke-linejoin="round"/><path d="M24 50h32l10 18a4 4 0 0 1-4 6H18a4 4 0 0 1-4-6z" fill="#ff6f5e"/><text x="40" y="69" text-anchor="middle" font-size="16" font-weight="800" fill="#fff">‰</text></svg>`,
     lager: `<svg class="bild" viewBox="0 0 80 80"><path d="M40 12v14" stroke="#14233d" stroke-width="4"/><rect x="14" y="26" width="52" height="42" rx="6" fill="#ffd24d" stroke="#14233d" stroke-width="3"/><path d="M14 40h52M40 26v42" stroke="#14233d" stroke-width="3"/><circle cx="40" cy="10" r="5" fill="#fff" stroke="#14233d" stroke-width="3"/></svg>`,
+    kalk: `<svg class="bild" viewBox="0 0 80 80"><path d="M8 66h14V52h14V38h14V24h14" fill="none" stroke="#14233d" stroke-width="4" stroke-linejoin="round"/><path d="M8 66h14V52h14V38h14V24h14v42z" fill="#a9e0c4" opacity=".7"/><path d="M44 6h26v18l-13 10-13-10z" fill="#ffd24d" stroke="#14233d" stroke-width="3" stroke-linejoin="round"/><circle cx="57" cy="13" r="3" fill="#14233d"/><text x="57" y="28" text-anchor="middle" font-size="9" font-weight="800">€</text></svg>`,
     kreis: `<svg class="bild" viewBox="0 0 80 80"><circle cx="40" cy="40" r="32" fill="#e4edfc" stroke="#14233d" stroke-width="3"/><path d="M40 40V8a32 32 0 0 1 30 42z" fill="#ff6f5e" stroke="#14233d" stroke-width="3"/><path d="M40 40l30 10a32 32 0 0 1-40 21z" fill="#ffd24d" stroke="#14233d" stroke-width="3"/></svg>`
   };
   const ABZEICHEN = id => `<svg class="abzeichen" viewBox="0 0 44 44"><title>Abzeichen</title><path d="M22 2l5.6 4 6.8-.6 2.2 6.5 5.5 4-2.4 6.4 2.4 6.4-5.5 4-2.2 6.5-6.8-.6-5.6 4-5.6-4-6.8.6L7.4 33l-5.5-4L4.3 22.3 1.9 15.9l5.5-4L9.6 5.4l6.8.6z" fill="#ffd24d" stroke="#14233d" stroke-width="2"/><path d="M14 22l6 6 11-12" fill="none" stroke="#14233d" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
@@ -931,6 +1048,7 @@ h1, h2, h3, .schrift { font-family: "Delius", "Comic Neue", "Avenir Next", sans-
     detektei: `<h3>Erst fragen: Wer wird gesucht?</h3><p><b>Grundwert:</b> das Ganze, 100 %.<br><b>Prozentwert:</b> der Teil vom Ganzen.<br><b>Prozentsatz:</b> die Zahl mit dem %.</p><h3>Über Kreuz</h3>${kreuz}<p>Die zwei Zahlen über Kreuz mal, durch die dritte teilen.</p><h3>Operator</h3><p>Teil = Ganzes · 0,15. Ganzes = Teil : 0,15.</p>`,
     promille: `<h3>Von Tausend</h3><p>1 ‰ = 1/1 000 = 0,001. 10 ‰ = 1 %.</p><p>Rechne genau wie bei Prozent, nur mit <b>1 000</b> statt 100.</p><p>Promillesatz = Teil · 1 000 : Ganzes.<br>Teil = Ganzes · Promillesatz : 1 000.</p><h3>Einheiten!</h3><p>Teil und Ganzes in derselben Einheit. 1 l = 1 000 ml.</p><h3>Warum-Fragen</h3><p>Denke an Teil und Grundwert: Gleicher Teil, kleinerer Grundwert, größerer Anteil.</p>`,
     lager: `<h3>Drei Wörter</h3><p><b>Brutto:</b> alles zusammen, immer 100 %.<br><b>Netto:</b> nur der Inhalt.<br><b>Tara:</b> nur die Verpackung.</p><p>Brutto = Netto + Tara. Netto % + Tara % = 100 %.</p><h3>Rückwärts</h3><p>Netto ist ein Teil, nicht das Ganze. Netto : 0,9 = Brutto, wenn Netto 90 % sind.</p>`,
+    kalk: `<h3>Das Schema</h3><table class="utabelle" style="width:auto;margin:6px 0"><tr><td>Einkaufspreis</td><td>100 %</td></tr><tr><td>+ Handlungskosten</td><td>vom Einkaufspreis</td></tr><tr><th>= Selbstkosten</th><td>neue 100 %</td></tr><tr><td>+ Gewinn oder − Verlust</td><td>von den Selbstkosten</td></tr><tr><th>= Nettoverkaufspreis</th><td>neue 100 %</td></tr><tr><td>+ 19 % Umsatzsteuer</td><td>vom Nettoverkaufspreis</td></tr><tr><th>= Bruttoverkaufspreis</th><td></td></tr></table><h3>Operatoren</h3><p>Runter im Schema: mal. 15 % Handlungskosten heißt · 1,15, 20 % Verlust heißt · 0,8, Umsatzsteuer heißt · 1,19.</p><h3>Zurück</h3><p>Von unten nach oben durch dieselben Faktoren teilen. Nie 19 % abziehen: Der Bruttopreis ist 119 %, nicht 100 %.</p>`,
     kreis: `<h3>Vom Zählen zum Kreis</h3><p>Anteil in Prozent: Anzahl · 100 : Gesamtzahl.</p><p>Winkel: 360° · Anteil. 10 % sind immer 36°.</p><h3>Zeichnen im Heft</h3><p>Radius einzeichnen. Winkel mit dem Geodreieck abtragen. Vom neuen Strich weitermachen. Sektoren beschriften. Probe: Am Ende bist du wieder am Start.</p>`
   };
 
@@ -938,7 +1056,7 @@ h1, h2, h3, .schrift { font-family: "Delius", "Comic Neue", "Avenir Next", sans-
   let ansicht = { art: "start" };
   function gehe(a) { ansicht = a; zeichnen(); window.scrollTo(0, 0); }
   const station = id => STATIONEN.find(s => s.id === id);
-  const FARBE = { preis: 0, verwandler: 1, bon: 2, detektei: 3, promille: 2, lager: 1, kreis: 0 };
+  const FARBE = { preis: 0, verwandler: 1, bon: 2, detektei: 3, promille: 2, lager: 1, kreis: 0, kalk: 3 };
 
   function kopf() {
     const r = ansicht.art === "pass" ? "pass" : ansicht.art === "lehrkraft" ? "lehrkraft" : "start";
@@ -966,7 +1084,7 @@ h1, h2, h3, .schrift { font-family: "Delius", "Comic Neue", "Avenir Next", sans-
   function startSeite() {
     const anz = STATIONEN.filter(s => S.st[s.id].abzeichen).length;
     return `<div class="bento-kopf">
-      <section class="kachel coach-kachel"><div class="coach-kreis">${COACH()}</div><div><h2>Coach Prozenti</h2><p>${anz === 0 ? "Sieben Stationen warten. Ich pfeife dich durch." : anz === 7 ? "Alle sieben Abzeichen! Stark gemacht." : `${anz} von 7 Abzeichen. Weiter so!`}</p></div></section>
+      <section class="kachel coach-kachel"><div class="coach-kreis">${COACH()}</div><div><h2>Coach Prozenti</h2><p>${anz === 0 ? "Deine Stationen warten. Ich pfeife dich durch." : anz === STATIONEN.length ? "Alle Abzeichen! Stark gemacht." : `${anz} von ${STATIONEN.length} Abzeichen. Weiter so!`}</p></div></section>
       <section class="kachel held"><div class="ueber">Mathe M8 · Fit im Prozentrechnen</div><h1>Trainiere, was du wirklich noch brauchst.</h1>
         <p>Jede Aufgabe gibt es immer wieder neu: Knopf drücken, andere Zahlen, andere Geschichte. Rechne im Heft, tippe hier nur das Ergebnis ein.</p>
         <div class="knoepfe"><button class="knopf" id="startcheck">${S.check ? "Start-Check wiederholen" : "Start-Check machen"}</button><button class="knopf gelb" id="generalprobe">Generalprobe (12 Minuten)</button></div></section>
@@ -974,7 +1092,9 @@ h1, h2, h3, .schrift { font-family: "Delius", "Comic Neue", "Avenir Next", sans-
     <div class="tagkopf"><h2>Tag 1</h2><span class="klein">Wähle deine Reihenfolge. Fang dort an, wo die Ampel rot ist.</span></div>
     <div class="raster">${STATIONEN.filter(s => s.tag === 1).map((s, i) => kachel(s, i, true)).join("")}</div>
     <div class="tagkopf"><h2>Tag 2</h2><span class="klein">Geodreieck und Heft bereitlegen.</span></div>
-    <div class="raster">${STATIONEN.filter(s => s.tag === 2).map((s, i) => kachel(s, i, false)).join("")}</div>`;
+    <div class="raster">${STATIONEN.filter(s => s.tag === 2).map((s, i) => kachel(s, i, false)).join("")}</div>
+    <div class="tagkopf"><h2>Extra</h2><span class="klein">Verkaufspreis kalkulieren, vorwärts und rückwärts. Buch S. 22 und 23.</span></div>
+    <div class="raster">${STATIONEN.filter(s => s.tag === 3).map((s, i) => kachel(s, i, true)).join("")}</div>`;
   }
 
   function passSeite() {
@@ -1003,7 +1123,7 @@ h1, h2, h3, .schrift { font-family: "Delius", "Comic Neue", "Avenir Next", sans-
       <h2 style="margin-top:14px;font-size:22px;color:var(--blau-tief)">Regeln</h2>
       <ul class="liste"><li>Gerechnet wird im Heft. Der Rechenweg bleibt sichtbar. Bitte stichprobenartig ansehen, die Seite prüft nur Ergebnisse.</li><li>Im Kreis-Studio wird die erste Aufgabe auf Stufe 2 immer mit dem Geodreieck gezeichnet.</li><li>Abzeichen: 3 Aufgaben in Folge auf Stufe 2, ohne Lösungsweg und höchstens mit einer Korrektur.</li><li>Wer fertig ist, geht auf Stufe 3.</li><li>Keine Namen, kein Server, Fortschritt nur auf dem Gerät.</li></ul>
       <h2 style="margin-top:14px;font-size:22px;color:var(--blau-tief)">Lehrplan</h2>
-      <p>LehrplanPLUS Mittelschule, Mathematik 8, Mittlere-Reife-Klasse, Lernbereich 1 Prozentrechnung: Wachstumsfaktor, Rabatt, Skonto, Umsatzsteuer, Brutto, Netto, Tara, Kreisdiagramm, Promille. Nicht enthalten: Verkaufspreiskalkulation.</p></section>
+      <p>LehrplanPLUS Mittelschule, Mathematik 8, Mittlere-Reife-Klasse, Lernbereich 1 Prozentrechnung: Wachstumsfaktor, Rabatt, Skonto, Umsatzsteuer, Brutto, Netto, Tara, Kreisdiagramm, Promille. Extra-Station Kalkulation (Buch S. 22/23): Einkaufspreis, Handlungskosten, Selbstkosten, Gewinn oder Verlust, Umsatzsteuer, vorwärts und rückwärts. Sie läuft nicht im Start-Check und nicht in der Generalprobe mit.</p></section>
       <section class="kachel"><h2 style="font-size:24px;color:var(--blau-tief)">QR für die Klasse</h2><img class="qr" src="qr.png" alt="QR-Code zur Seite"><p class="klein">fhe86.github.io/prozent-training</p>
       <h2 style="margin-top:14px;font-size:22px;color:var(--blau-tief)">Für OneNote und als Reserve</h2>
       <ul class="liste"><li><a href="material/fitnesspass.pdf">Fitnesspass als PDF</a></li><li><a href="material/reserve-aufgaben.pdf">Reserve-Aufgaben mit Lösungen</a>, falls das WLAN ausfällt</li><li><a href="material/kreise-zeichnen.pdf">Kreise zeichnen</a>: zwei Umfragen zum Zeichnen mit Pencil oder Geodreieck, mit Lösung</li></ul></section></div>`;
@@ -1292,12 +1412,12 @@ h1, h2, h3, .schrift { font-family: "Delius", "Comic Neue", "Avenir Next", sans-
   /* ---------- Start-Check und Generalprobe ---------- */
   let lauf = null;
   function checkStarten() {
-    const reihe = mischen(Math.random, STATIONEN.map(s => s.id));
+    const reihe = mischen(Math.random, STATIONEN.filter(s => !s.extra).map(s => s.id));
     lauf = { art: "check", reihe, i: 0, ergebnis: {}, z: neuerZustand(erzeuge(reihe[0], 2, Math.random, { ohneZeichnen: true })), bewertet: false };
     ansicht = { art: "lauf" }; zeichnen();
   }
   function generalprobeStarten() {
-    const reihe = mischen(Math.random, STATIONEN.map(s => s.id));
+    const reihe = mischen(Math.random, STATIONEN.filter(s => !s.extra).map(s => s.id));
     lauf = { art: "gp", reihe, i: 0, ergebnis: {}, ende: Date.now() + 12 * 60000, z: neuerZustand(erzeuge(reihe[0], 2, Math.random, { ohneZeichnen: true })), bewertet: false };
     ansicht = { art: "lauf" }; zeichnen();
   }
