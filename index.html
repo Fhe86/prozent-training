@@ -95,6 +95,7 @@ h1, h2, h3, .schrift { font-family: "Delius", "Comic Neue", "Avenir Next", sans-
 .richtig input, input.richtig { border-color: var(--gruen); background: var(--gruen-hell); }
 .falsch input, input.falsch { border-color: var(--rot); background: var(--rot-hell); }
 .meldung { margin-top: 6px; font-size: 15px; font-weight: 600; color: var(--rot); }
+.meldung.gut { color: #1d7a4a; }
 .ok-haken { color: var(--gruen); font-weight: 700; }
 .bruch-eingabe { display: inline-flex; flex-direction: column; gap: 4px; align-items: center; }
 .bruch-eingabe input { width: 92px; min-height: 44px; text-align: center; }
@@ -374,7 +375,7 @@ h1, h2, h3, .schrift { font-family: "Delius", "Comic Neue", "Avenir Next", sans-
     const start = pick(r, mitHundert ? ["bruch", "dez", "prozent"] : ["bruch", "prozent"]);
     const gegeben = { bruch: `<span class="b"><i>${f.z}</i><i>${f.n}</i></span>`, dez: zahl(f.dez), prozent: pz(p) }[start];
     const teile = [];
-    if (start !== "bruch") teile.push({ art: "bruch", id: "b", label: p > 100 ? "Bruch, gekürzt (darf größer als 1 sein)" : "Bruch, so weit wie möglich gekürzt", z: f.z, n: f.n, gekuerzt: true });
+    if (start !== "bruch") teile.push({ art: "bruch", id: "b", label: p > 100 ? "Bruch, am besten gekürzt (darf größer als 1 sein)" : "Bruch, am besten gekürzt", z: f.z, n: f.n, gekuerzt: true });
     if (mitHundert) teile.push(feld("h", "Hundertstelbruch: Trage den Zähler ein", p, "/100"));
     if (start !== "dez") teile.push(feld("d", "Dezimalbruch", f.dez, "", { fehler: [{ wert: p, msg: "Das wäre die Prozentzahl. Beim Dezimalbruch steht das Komma zwei Stellen weiter links." }, { wert: rund(f.dez / 10), tol: 1e-6, msg: "Eine Stelle zu weit. Das Komma rückt nur um zwei Stellen." }] }));
     if (start !== "prozent") teile.push(feld("p", "Prozent", p, "%"));
@@ -1213,7 +1214,7 @@ h1, h2, h3, .schrift { font-family: "Delius", "Comic Neue", "Avenir Next", sans-
   function teilHtml(x, i, z, t) {
     const zust = z.gemeldet[x.id] || {};
     const kl = zust.ok === true ? "richtig" : zust.ok === false ? "falsch" : "";
-    const ms = zust.msg ? `<div class="meldung">${zust.msg}</div>` : "";
+    const ms = zust.msg ? `<div class="meldung ${zust.ok === true ? "gut" : ""}">${zust.msg}</div>` : "";
     const fest = zust.ok === true || z.fertig ? "disabled" : "";
     const hilfe = x.hilfe ? `<div class="hilfe">${x.hilfe}</div>` : "";
     if (x.art === "zahl") {
@@ -1370,8 +1371,10 @@ h1, h2, h3, .schrift { font-family: "Delius", "Comic Neue", "Avenir Next", sans-
     if (x.art === "bruch") {
       const a = parseNum(z.werte[x.id + "-z"]), b = parseNum(z.werte[x.id + "-n"]);
       if (Number.isNaN(a) || Number.isNaN(b)) return { ok: false, leer: true, msg: "Fülle Zähler und Nenner aus." };
+      if (b === 0) return { ok: false, msg: "Durch 0 kann man nicht teilen. Prüfe den Nenner." };
       if (a === x.z && b === x.n) return { ok: true };
-      if (b !== 0 && Math.abs(a / b - x.z / x.n) < 1e-9) return { ok: false, msg: "Der Wert stimmt. Kürze noch weiter." };
+      /* Jeder gleichwertige Bruch zählt. Ist er noch nicht ganz gekürzt, zeigt der Coach die gekürzte Form. */
+      if (Number.isInteger(a) && Number.isInteger(b) && a * x.n === b * x.z) return { ok: true, msg: `Richtig. Ganz gekürzt heißt der Bruch ${x.z}/${x.n}.` };
       return { ok: false, msg: "Der Bruch hat einen anderen Wert. Erweitere zuerst auf Hundertstel." };
     }
     if (x.art === "kreis") {
