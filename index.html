@@ -1006,19 +1006,24 @@ h1, h2, h3, .schrift { font-family: "Delius", "Comic Neue", "Avenir Next", sans-
       { id: "gw", text: "Ich kann den Grundwert berechnen.", stufe: 2, passt: t => t.probe.typ === "grund" && t.probe.art === "u" },
       { id: "ps", text: "Ich kann den Prozentsatz berechnen.", stufe: 2, passt: t => t.probe.typ === "grund" && t.probe.art === "q" }
     ] },
-    { thema: "Werte ändern sich", station: "preis", punkte: [
+    { thema: "Kreisdiagramm", station: "kreis", punkte: [
+      { id: "kreis", text: "Ich kann Anzahlen in Prozent und Winkel umrechnen und das Kreisdiagramm zeichnen.", stufe: 2, opt: { modus: "ziehen" }, passt: t => t.probe.typ === "kreis" }
+    ] },
+    { thema: "Preissteigerung und Preissenkung", station: "preis", punkte: [
       { id: "faktor", text: "Ich kann einen neuen Wert mit dem Wachstumsfaktor berechnen, wenn er steigt oder sinkt.", stufe: 2, passt: t => t.probe.typ === "preis" && !rueck(t) && t.zahlen.length === 3 },
       { id: "aenderung", text: "Ich kann berechnen, um wie viel Prozent sich ein Wert verändert hat.", stufe: 2, passt: t => t.probe.typ === "preis" && !rueck(t) && t.zahlen.length === 2 },
       { id: "vorher", text: "Ich kann rückwärts rechnen: Wie groß war der Wert vorher?", stufe: 2, passt: t => t.probe.typ === "preis" && rueck(t) }
     ] },
-    { thema: "Rabatt, Umsatzsteuer und Skonto", station: "bon", punkte: [
+    { thema: "Nettopreis und Bruttopreis", station: "bon", punkte: [
       { id: "bon", text: "Ich kann Rabatt, Umsatzsteuer und Skonto nacheinander berechnen. Jede Zeile hat einen neuen Grundwert.", stufe: 2, passt: t => t.probe.typ === "bon" && !t.probe.gefragt },
       { id: "gesamt", text: "Ich kann sagen, um wie viel Prozent der Endbetrag insgesamt vom Anfangspreis abweicht.", stufe: 2, passt: t => t.probe.typ === "bon" && t.probe.gefragt }
     ] },
-    { thema: "Kreisdiagramm", station: "kreis", punkte: [
-      { id: "kreis", text: "Ich kann Anzahlen in Prozent und Winkel umrechnen und das Kreisdiagramm zeichnen.", stufe: 2, opt: { modus: "ziehen" }, passt: t => t.probe.typ === "kreis" }
+    { thema: "Verkaufspreis kalkulieren", station: "kalk", punkte: [
+      { id: "vkp", text: "Ich kann vom Einkaufspreis über Handlungskosten, Selbstkosten, Gewinn und Umsatzsteuer den Verkaufspreis berechnen.", stufe: 2, passt: t => t.probe.typ === "kalk" && t.probe.art === "vor" },
+      { id: "vkpfaktor", text: "Ich kann den Verkaufspreis mit Operatoren (Faktoren) in einer Rechnung berechnen.", stufe: 2, passt: t => t.probe.typ === "kalk" && t.probe.art === "faktor" },
+      { id: "vkprueck", text: "Ich kann vom Verkaufspreis rückwärts bis zum Einkaufspreis rechnen.", stufe: 2, passt: t => t.probe.typ === "kalk" && t.probe.art === "rueck" }
     ] },
-    { thema: "Brutto, Netto, Tara", station: "lager", punkte: [
+    { thema: "Brutto, Netto, Tara (Gewicht)", station: "lager", punkte: [
       { id: "tara", text: "Ich kann aus dem Brutto die Tara und das Netto berechnen.", stufe: 2, passt: t => t.probe.typ === "tara" && t.teile[0].label === "Tara" },
       { id: "brutto", text: "Ich kann rückwärts das Brutto berechnen, wenn Netto oder Tara gegeben ist.", stufe: 2, passt: t => t.probe.typ === "tara" && t.teile[0].label === "Brutto" }
     ] },
@@ -1026,11 +1031,6 @@ h1, h2, h3, .schrift { font-family: "Delius", "Comic Neue", "Avenir Next", sans-
       { id: "pmsatz", text: "Ich kann einen Anteil in Promille berechnen und prüfen, ob eine Grenze erreicht ist.", stufe: 2, passt: t => t.probe.typ === "satz" },
       { id: "pmwert", text: "Ich kann eine Menge aus einem Promillewert berechnen, zum Beispiel eine Grenzmenge.", stufe: 2, passt: t => t.probe.typ === "wert" },
       { id: "warum", text: "Ich kann erklären, warum der Anteil größer wird, wenn der Grundwert kleiner ist.", stufe: 2, opt: { ohneZeichnen: true }, passt: t => t.probe.typ === "salz" }
-    ] },
-    { thema: "Verkaufspreis kalkulieren", station: "kalk", punkte: [
-      { id: "vkp", text: "Ich kann vom Einkaufspreis über Handlungskosten, Selbstkosten, Gewinn und Umsatzsteuer den Verkaufspreis berechnen.", stufe: 2, passt: t => t.probe.typ === "kalk" && t.probe.art === "vor" },
-      { id: "vkpfaktor", text: "Ich kann den Verkaufspreis mit Operatoren (Faktoren) in einer Rechnung berechnen.", stufe: 2, passt: t => t.probe.typ === "kalk" && t.probe.art === "faktor" },
-      { id: "vkprueck", text: "Ich kann vom Verkaufspreis rückwärts bis zum Einkaufspreis rechnen.", stufe: 2, passt: t => t.probe.typ === "kalk" && t.probe.art === "rueck" }
     ] }
   ];
   const PUNKTE = CHECKLISTE.flatMap(g => g.punkte.map(p => Object.assign({ thema: g.thema, station: g.station }, p)));
