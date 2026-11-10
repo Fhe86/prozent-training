@@ -970,7 +970,7 @@ h1, h2, h3, .schrift { font-family: "Delius", "Comic Neue", "Avenir Next", sans-
     { id: "promille", name: "Promille-Labor", motto: "Teile von Tausend", tag: 2, f: promille },
     { id: "lager", name: "Lager", motto: "Brutto, Netto, Tara auf die Waage", tag: 2, f: lager },
     { id: "kreis", name: "Kreis-Studio", motto: "Von der Umfrage zum Kreisdiagramm", tag: 2, f: kreis },
-    { id: "kalk", name: "Kalkulation", motto: "Vom Einkaufspreis zum Ladenpreis und zurück", tag: 3, extra: true, f: kalk }
+    { id: "kalk", name: "Kalkulation", motto: "Vom Einkaufspreis zum Ladenpreis und zurück", tag: 3, f: kalk }
   ];
 
   function erzeuge(stationId, stufe, r, opt) {
@@ -1026,6 +1026,11 @@ h1, h2, h3, .schrift { font-family: "Delius", "Comic Neue", "Avenir Next", sans-
       { id: "pmsatz", text: "Ich kann einen Anteil in Promille berechnen und prüfen, ob eine Grenze erreicht ist.", stufe: 2, passt: t => t.probe.typ === "satz" },
       { id: "pmwert", text: "Ich kann eine Menge aus einem Promillewert berechnen, zum Beispiel eine Grenzmenge.", stufe: 2, passt: t => t.probe.typ === "wert" },
       { id: "warum", text: "Ich kann erklären, warum der Anteil größer wird, wenn der Grundwert kleiner ist.", stufe: 2, opt: { ohneZeichnen: true }, passt: t => t.probe.typ === "salz" }
+    ] },
+    { thema: "Verkaufspreis kalkulieren", station: "kalk", punkte: [
+      { id: "vkp", text: "Ich kann vom Einkaufspreis über Handlungskosten, Selbstkosten, Gewinn und Umsatzsteuer den Verkaufspreis berechnen.", stufe: 2, passt: t => t.probe.typ === "kalk" && t.probe.art === "vor" },
+      { id: "vkpfaktor", text: "Ich kann den Verkaufspreis mit Operatoren (Faktoren) in einer Rechnung berechnen.", stufe: 2, passt: t => t.probe.typ === "kalk" && t.probe.art === "faktor" },
+      { id: "vkprueck", text: "Ich kann vom Verkaufspreis rückwärts bis zum Einkaufspreis rechnen.", stufe: 2, passt: t => t.probe.typ === "kalk" && t.probe.art === "rueck" }
     ] }
   ];
   const PUNKTE = CHECKLISTE.flatMap(g => g.punkte.map(p => Object.assign({ thema: g.thema, station: g.station }, p)));
@@ -1175,13 +1180,13 @@ h1, h2, h3, .schrift { font-family: "Delius", "Comic Neue", "Avenir Next", sans-
       <section class="kachel coach-kachel"><div class="coach-kreis">${COACH()}</div><div><h2>Coach Prozenti</h2><p>${anz === 0 ? "Deine Stationen warten. Ich pfeife dich durch." : anz === STATIONEN.length ? "Alle Abzeichen! Stark gemacht." : `${anz} von ${STATIONEN.length} Abzeichen. Weiter so!`}</p></div></section>
       <section class="kachel held"><div class="ueber">Mathe M8 · Fit im Prozentrechnen</div><h1>Trainiere, was du wirklich noch brauchst.</h1>
         <p>Jede Aufgabe gibt es immer wieder neu: Knopf drücken, andere Zahlen, andere Geschichte. Rechne im Heft, tippe hier nur das Ergebnis ein.</p>
-        <div class="knoepfe"><button class="knopf" id="startcheck">${S.check ? "Start-Check wiederholen" : "Start-Check machen"}</button><button class="knopf gelb" id="generalprobe">Generalprobe (12 Minuten)</button></div></section>
+        <div class="knoepfe"><button class="knopf" id="startcheck">${S.check ? "Start-Check wiederholen" : "Start-Check machen"}</button><button class="knopf gelb" id="generalprobe">Generalprobe (14 Minuten)</button></div></section>
     </div>
     <div class="tagkopf"><h2>Tag 1</h2><span class="klein">Wähle deine Reihenfolge. Fang dort an, wo die Ampel rot ist.</span></div>
     <div class="raster">${STATIONEN.filter(s => s.tag === 1).map((s, i) => kachel(s, i, true)).join("")}</div>
     <div class="tagkopf"><h2>Tag 2</h2><span class="klein">Geodreieck und Heft bereitlegen.</span></div>
     <div class="raster">${STATIONEN.filter(s => s.tag === 2).map((s, i) => kachel(s, i, false)).join("")}</div>
-    <div class="tagkopf"><h2>Extra</h2><span class="klein">Verkaufspreis kalkulieren, vorwärts und rückwärts. Buch S. 22 und 23.</span></div>
+    <div class="tagkopf"><h2>Verkaufspreis</h2><span class="klein">Kalkulieren, vorwärts und rückwärts. Kommt auch in der Probe dran. Buch S. 22 und 23.</span></div>
     <div class="raster">${STATIONEN.filter(s => s.tag === 3).map((s, i) => kachel(s, i, true)).join("")}</div>`;
   }
 
@@ -1205,13 +1210,13 @@ h1, h2, h3, .schrift { font-family: "Delius", "Comic Neue", "Avenir Next", sans-
   function lehrSeite() {
     return `<div class="spalten2"><section class="kachel"><h1 class="schrift" style="font-size:30px;color:var(--blau-tief)">Ablauf</h1>
       <table class="plan"><tr><th></th><th>Tag 1</th><th>Tag 2</th></tr>
-      <tr><th>5 Min</th><td>Start-Check: 7 Fragen, je Station eine. Ergibt die Ampel.</td><td>Ampel ansehen, Tagesziel wählen.</td></tr>
+      <tr><th>5 Min</th><td>Start-Check: 8 Fragen, je Station eine. Ergibt die Ampel.</td><td>Ampel ansehen, Tagesziel wählen.</td></tr>
       <tr><th>30 bis 35 Min</th><td>Preis-Maschine, Verwandler, Kassenbon, Detektei</td><td>Promille-Labor, Lager, Kreis-Studio (Geodreieck, Heft). Etwa 25 Min.</td></tr>
-      <tr><th>Rest</th><td>Stolperstelle des Tages an die Tafel</td><td>12 Min Generalprobe, 3 Min Merkzettel</td></tr></table>
+      <tr><th>Rest</th><td>Stolperstelle des Tages an die Tafel</td><td>14 Min Generalprobe, 3 Min Merkzettel</td></tr></table>
       <h2 style="margin-top:14px;font-size:22px;color:var(--blau-tief)">Regeln</h2>
-      <ul class="liste"><li>Gerechnet wird im Heft. Der Rechenweg bleibt sichtbar. Bitte stichprobenartig ansehen, die Seite prüft nur Ergebnisse.</li><li>Im Kreis-Studio wird die erste Aufgabe auf Stufe 2 immer mit dem Geodreieck gezeichnet.</li><li>Abzeichen: 3 Aufgaben in Folge auf Stufe 2, ohne Lösungsweg und höchstens mit einer Korrektur.</li><li>Wer fertig ist, geht auf Stufe 3.</li><li>Reiter Checkliste: 15 Kann-Punkte aus der Probe. Zu jedem Punkt gibt es eine mittelschwere Testaufgabe, richtig gelöst wird abgehakt. Die Checklisten-Generalprobe fragt alle Punkte nacheinander ab, ohne Zeitlimit.</li><li>Keine Namen, kein Server, Fortschritt nur auf dem Gerät.</li></ul>
+      <ul class="liste"><li>Gerechnet wird im Heft. Der Rechenweg bleibt sichtbar. Bitte stichprobenartig ansehen, die Seite prüft nur Ergebnisse.</li><li>Im Kreis-Studio wird die erste Aufgabe auf Stufe 2 immer mit dem Geodreieck gezeichnet.</li><li>Abzeichen: 3 Aufgaben in Folge auf Stufe 2, ohne Lösungsweg und höchstens mit einer Korrektur.</li><li>Wer fertig ist, geht auf Stufe 3.</li><li>Reiter Checkliste: 18 Kann-Punkte aus der Probe. Zu jedem Punkt gibt es eine mittelschwere Testaufgabe, richtig gelöst wird abgehakt. Die Checklisten-Generalprobe fragt alle Punkte nacheinander ab, ohne Zeitlimit.</li><li>Keine Namen, kein Server, Fortschritt nur auf dem Gerät.</li></ul>
       <h2 style="margin-top:14px;font-size:22px;color:var(--blau-tief)">Lehrplan</h2>
-      <p>LehrplanPLUS Mittelschule, Mathematik 8, Mittlere-Reife-Klasse, Lernbereich 1 Prozentrechnung: Wachstumsfaktor, Rabatt, Skonto, Umsatzsteuer, Brutto, Netto, Tara, Kreisdiagramm, Promille. Extra-Station Kalkulation (Buch S. 22/23): Einkaufspreis, Handlungskosten, Selbstkosten, Gewinn oder Verlust, Umsatzsteuer, vorwärts und rückwärts. Sie läuft nicht im Start-Check und nicht in der Generalprobe mit.</p></section>
+      <p>LehrplanPLUS Mittelschule, Mathematik 8, Mittlere-Reife-Klasse, Lernbereich 1 Prozentrechnung: Wachstumsfaktor, Rabatt, Skonto, Umsatzsteuer, Brutto, Netto, Tara, Kreisdiagramm, Promille. Station Kalkulation (Buch S. 22/23): Einkaufspreis, Handlungskosten, Selbstkosten, Gewinn oder Verlust, Umsatzsteuer, vorwärts und rückwärts. Seit 10.11. Teil der Probe, deshalb auch im Start-Check, in der Generalprobe und in der Checkliste.</p></section>
       <section class="kachel"><h2 style="font-size:24px;color:var(--blau-tief)">QR für die Klasse</h2><img class="qr" src="qr.png" alt="QR-Code zur Seite"><p class="klein">fhe86.github.io/prozent-training</p>
       <h2 style="margin-top:14px;font-size:22px;color:var(--blau-tief)">Für OneNote und als Reserve</h2>
       <ul class="liste"><li><a href="material/fitnesspass.pdf">Fitnesspass als PDF</a></li><li><a href="material/reserve-aufgaben.pdf">Reserve-Aufgaben mit Lösungen</a>, falls das WLAN ausfällt</li><li><a href="material/kreise-zeichnen.pdf">Kreise zeichnen</a>: zwei Umfragen zum Zeichnen mit Pencil oder Geodreieck, mit Lösung</li></ul></section></div>`;
@@ -1508,7 +1513,7 @@ h1, h2, h3, .schrift { font-family: "Delius", "Comic Neue", "Avenir Next", sans-
   }
   function generalprobeStarten() {
     const reihe = mischen(Math.random, STATIONEN.filter(s => !s.extra).map(s => s.id));
-    lauf = { art: "gp", reihe, i: 0, ergebnis: {}, ende: Date.now() + 12 * 60000, z: neuerZustand(erzeuge(reihe[0], 2, Math.random, { ohneZeichnen: true })), bewertet: false };
+    lauf = { art: "gp", reihe, i: 0, ergebnis: {}, ende: Date.now() + 14 * 60000, z: neuerZustand(erzeuge(reihe[0], 2, Math.random, { ohneZeichnen: true })), bewertet: false };
     ansicht = { art: "lauf" }; zeichnen();
   }
   let uhrId = null;
