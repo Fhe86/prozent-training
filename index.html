@@ -159,6 +159,41 @@ h1, h2, h3, .schrift { font-family: "Delius", "Comic Neue", "Avenir Next", sans-
 .fortschritt i { display: block; height: 100%; background: var(--blau); transition: width .3s; }
 .uhr { font: 28px "Delius", sans-serif; color: var(--koralle); }
 
+/* Checkliste */
+.ckheld { margin-bottom: 16px; }
+.ckstand { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 8px; }
+.ckstand .fortschritt { flex: 1 1 220px; margin: 0; height: 14px; }
+.ckstand .fortschritt i { background: var(--gruen); }
+.ckraster { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+.ckgruppe { border-top: 8px solid var(--blau-mittel); }
+.ckgruppe.farbe1 { border-top-color: var(--gelb); } .ckgruppe.farbe2 { border-top-color: var(--koralle); } .ckgruppe.farbe3 { border-top-color: #9fd3dc; }
+.ckkopf { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+.ckkopf svg.bild { width: 46px; height: 46px; flex: none; }
+.ckkopf h2 { font-size: 23px; color: var(--blau-tief); flex: 1; }
+.ckzahl { font-weight: 700; font-size: 15px; padding: 3px 12px; border-radius: 999px; background: var(--blau-hell); color: var(--blau-tief); white-space: nowrap; }
+.ckzahl.voll { background: var(--gruen); color: #fff; }
+.ckliste { list-style: none; padding: 0; }
+.ckpunkt { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; padding: 12px 0; border-top: 1px solid var(--linie); }
+.ckpunkt:first-child { border-top: 0; }
+.ckbox { position: relative; width: 44px; height: 44px; flex: none; cursor: pointer; }
+.ckbox input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+.ckhaken { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 12px; border: 3px solid var(--blau-mittel); background: #fff; color: transparent; transition: background .15s, border-color .15s; }
+.ckhaken svg { width: 28px; height: 28px; }
+.ckbox input:focus-visible + .ckhaken { outline: 3px solid var(--blau); outline-offset: 2px; }
+.ckpunkt.an .ckhaken { background: var(--gruen); border-color: var(--gruen); color: #fff; }
+.ckpunkt.an .cktext > span { color: var(--grau); }
+.cktext { font-size: 16px; line-height: 1.4; }
+.ckzeile { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 4px; }
+.ckstatus { font-size: 13px; font-weight: 700; padding: 2px 10px; border-radius: 999px; }
+.ckstatus.ok { background: var(--gruen-hell); color: var(--gruen); }
+.ckstatus.nochmal { background: var(--rot-hell); color: var(--rot); }
+.ckzeile .textlink { font-size: 14px; }
+.knopf.cktest { min-height: 44px; padding: 0 16px; font-size: 15px; white-space: nowrap; }
+.ckpunkt.ok .knopf.cktest { background: #fff; color: var(--blau-tief); box-shadow: inset 0 0 0 2px var(--blau-mittel), 0 3px 0 var(--blau-mittel); }
+.ckfrage { display: flex; gap: 14px; align-items: center; background: var(--gelb-hell); border-radius: 16px; padding: 12px 16px; margin: 6px 0 14px; }
+.ckfrage svg.bild { width: 50px; height: 50px; flex: none; }
+.ckfrage b { display: block; font-size: 18px; font-weight: 600; }
+
 /* Hilfedialog */
 .schleier { position: fixed; inset: 0; background: rgba(20, 35, 61, .45); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 20; }
 .dialog { background: #fff; border-radius: var(--r); padding: 22px; max-width: 620px; width: 100%; max-height: 90vh; overflow: auto; }
@@ -186,7 +221,7 @@ h1, h2, h3, .schrift { font-family: "Delius", "Comic Neue", "Avenir Next", sans-
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 
 @media (max-width: 820px) {
-  .bento-kopf, .arbeit, .spalten2 { grid-template-columns: 1fr; }
+  .bento-kopf, .arbeit, .spalten2, .ckraster { grid-template-columns: 1fr; }
   .coach-kachel { flex-direction: row; text-align: left; gap: 14px; justify-content: flex-start; }
   .coach-kreis { width: 96px; height: 96px; flex: none; margin: 0; }
   .coach-kreis svg { width: 76px; height: 76px; }
@@ -197,13 +232,15 @@ h1, h2, h3, .schrift { font-family: "Delius", "Comic Neue", "Avenir Next", sans-
 @media (max-width: 480px) {
   .raster { grid-template-columns: 1fr; }
   .reiter { width: 100%; justify-content: space-between; }
-  .reiter button { padding: 0 12px; flex: 1; }
+  .reiter button { padding: 0 6px; flex: 1; font-size: 14px; }
+  .ckpunkt { grid-template-columns: auto 1fr; }
+  .ckpunkt .cktest { grid-column: 2; justify-self: start; }
   .bon-zeile { grid-template-columns: 1fr; }
   .memory { grid-template-columns: repeat(2, 1fr); }
 }
 @media print {
   body { background: #fff; font-size: 12pt; }
-  .kopf, .knoepfe, .nur-bildschirm, .schleier { display: none !important; }
+  .kopf, .knoepfe, .nur-bildschirm, .schleier, .cktest, .ckzeile .textlink { display: none !important; }
   .kachel, .passkarte { box-shadow: none; border: 1px solid #99a; break-inside: avoid; }
   .huelle { width: 100%; padding: 0; }
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -955,7 +992,54 @@ h1, h2, h3, .schrift { font-family: "Delius", "Comic Neue", "Avenir Next", sans-
     return isFinite(n) ? n : NaN;
   }
 
-  const api = { STATIONEN, erzeuge, parseNum, zahl, euro, pz, pm, ggt, mischen, rund };
+  /* ---------- Checkliste: was in der Probe drankommt ----------
+     Jeder Punkt holt sich eine mittelschwere Aufgabe genau dieses Typs aus den Stationen.
+     Der Typ wird nicht erzwungen, sondern neu gewürfelt, bis er passt. So bleibt der
+     geprüfte Zahlenvorrat unverändert. Keine Aufgabennummern, keine Punkte der Probe. */
+  const rueck = t => / rückwärts$/.test(t.titel);
+  const CHECKLISTE = [
+    { thema: "Umwandeln", station: "verwandler", punkte: [
+      { id: "umw", text: "Ich kann Prozent in Bruch, Hundertstelbruch und Dezimalbruch umwandeln und den Bruch kürzen.", stufe: 2, passt: t => t.probe.typ === "gesicht" }
+    ] },
+    { thema: "Grundaufgaben", station: "detektei", punkte: [
+      { id: "pw", text: "Ich kann den Prozentwert berechnen.", stufe: 2, passt: t => t.probe.typ === "grund" && t.probe.art === "s" },
+      { id: "gw", text: "Ich kann den Grundwert berechnen.", stufe: 2, passt: t => t.probe.typ === "grund" && t.probe.art === "u" },
+      { id: "ps", text: "Ich kann den Prozentsatz berechnen.", stufe: 2, passt: t => t.probe.typ === "grund" && t.probe.art === "q" }
+    ] },
+    { thema: "Werte ändern sich", station: "preis", punkte: [
+      { id: "faktor", text: "Ich kann einen neuen Wert mit dem Wachstumsfaktor berechnen, wenn er steigt oder sinkt.", stufe: 2, passt: t => t.probe.typ === "preis" && !rueck(t) && t.zahlen.length === 3 },
+      { id: "aenderung", text: "Ich kann berechnen, um wie viel Prozent sich ein Wert verändert hat.", stufe: 2, passt: t => t.probe.typ === "preis" && !rueck(t) && t.zahlen.length === 2 },
+      { id: "vorher", text: "Ich kann rückwärts rechnen: Wie groß war der Wert vorher?", stufe: 2, passt: t => t.probe.typ === "preis" && rueck(t) }
+    ] },
+    { thema: "Rabatt, Umsatzsteuer und Skonto", station: "bon", punkte: [
+      { id: "bon", text: "Ich kann Rabatt, Umsatzsteuer und Skonto nacheinander berechnen. Jede Zeile hat einen neuen Grundwert.", stufe: 2, passt: t => t.probe.typ === "bon" && !t.probe.gefragt },
+      { id: "gesamt", text: "Ich kann sagen, um wie viel Prozent der Endbetrag insgesamt vom Anfangspreis abweicht.", stufe: 2, passt: t => t.probe.typ === "bon" && t.probe.gefragt }
+    ] },
+    { thema: "Kreisdiagramm", station: "kreis", punkte: [
+      { id: "kreis", text: "Ich kann Anzahlen in Prozent und Winkel umrechnen und das Kreisdiagramm zeichnen.", stufe: 2, opt: { modus: "ziehen" }, passt: t => t.probe.typ === "kreis" }
+    ] },
+    { thema: "Brutto, Netto, Tara", station: "lager", punkte: [
+      { id: "tara", text: "Ich kann aus dem Brutto die Tara und das Netto berechnen.", stufe: 2, passt: t => t.probe.typ === "tara" && t.teile[0].label === "Tara" },
+      { id: "brutto", text: "Ich kann rückwärts das Brutto berechnen, wenn Netto oder Tara gegeben ist.", stufe: 2, passt: t => t.probe.typ === "tara" && t.teile[0].label === "Brutto" }
+    ] },
+    { thema: "Promille", station: "promille", punkte: [
+      { id: "pmsatz", text: "Ich kann einen Anteil in Promille berechnen und prüfen, ob eine Grenze erreicht ist.", stufe: 2, passt: t => t.probe.typ === "satz" },
+      { id: "pmwert", text: "Ich kann eine Menge aus einem Promillewert berechnen, zum Beispiel eine Grenzmenge.", stufe: 2, passt: t => t.probe.typ === "wert" },
+      { id: "warum", text: "Ich kann erklären, warum der Anteil größer wird, wenn der Grundwert kleiner ist.", stufe: 2, opt: { ohneZeichnen: true }, passt: t => t.probe.typ === "salz" }
+    ] }
+  ];
+  const PUNKTE = CHECKLISTE.flatMap(g => g.punkte.map(p => Object.assign({ thema: g.thema, station: g.station }, p)));
+
+  function erzeugePunkt(punktId, r) {
+    const p = PUNKTE.find(x => x.id === punktId);
+    for (let i = 0; i < 2000; i++) {
+      const t = erzeuge(p.station, p.stufe, r || Math.random, p.opt || {});
+      if (p.passt(t)) { t.punkt = p.id; return t; }
+    }
+    throw new Error("Keine passende Aufgabe für Checklisten-Punkt " + punktId);
+  }
+
+  const api = { STATIONEN, CHECKLISTE, PUNKTE, erzeuge, erzeugePunkt, parseNum, zahl, euro, pz, pm, ggt, mischen, rund };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.G = api;
 })(typeof window !== "undefined" ? window : globalThis);
 
@@ -964,7 +1048,7 @@ h1, h2, h3, .schrift { font-family: "Delius", "Comic Neue", "Avenir Next", sans-
 /* Oberfläche des Trainingslagers. Aufgaben kommen aus generatoren.js (window.G). */
 (function () {
   "use strict";
-  const { STATIONEN, erzeuge, parseNum, zahl, ggt, mischen } = window.G;
+  const { STATIONEN, CHECKLISTE, PUNKTE, erzeuge, erzeugePunkt, parseNum, zahl, ggt, mischen } = window.G;
   const $ = (s, el = document) => el.querySelector(s);
   const app = $("#app");
   const SPEICHER = "prozent-training-v1";
@@ -972,10 +1056,10 @@ h1, h2, h3, .schrift { font-family: "Delius", "Comic Neue", "Avenir Next", sans-
   /* ---------- Speicher ---------- */
   function leererStand() {
     const st = {}; STATIONEN.forEach(s => (st[s.id] = { stufe: 1, serie: 0, abzeichen: false, richtig: 0, fehl: 0 }));
-    return { st, check: null, generalprobe: null };
+    return { st, check: null, generalprobe: null, liste: {} };
   }
   function laden() {
-    try { const r = JSON.parse(localStorage.getItem(SPEICHER)); if (r && r.st) { const l = leererStand(); Object.keys(l.st).forEach(k => (r.st[k] = Object.assign(l.st[k], r.st[k]))); return r; } } catch (e) {}
+    try { const r = JSON.parse(localStorage.getItem(SPEICHER)); if (r && r.st) { const l = leererStand(); Object.keys(l.st).forEach(k => (r.st[k] = Object.assign(l.st[k], r.st[k]))); if (!r.liste || typeof r.liste !== "object") r.liste = {}; return r; } } catch (e) {}
     return leererStand();
   }
   const S = laden();
@@ -1061,13 +1145,13 @@ h1, h2, h3, .schrift { font-family: "Delius", "Comic Neue", "Avenir Next", sans-
   const FARBE = { preis: 0, verwandler: 1, bon: 2, detektei: 3, promille: 2, lager: 1, kreis: 0, kalk: 3 };
 
   function kopf() {
-    const r = ansicht.art === "pass" ? "pass" : ansicht.art === "lehrkraft" ? "lehrkraft" : "start";
+    const r = ansicht.art === "pass" ? "pass" : ansicht.art === "lehrkraft" ? "lehrkraft" : ansicht.art === "liste" || ansicht.art === "test" ? "liste" : "start";
     return `<header class="kopf"><button class="marke" data-go="start">${BILD.kreis.replace('class="bild"', "")}Trainingslager</button>
-      <nav class="reiter" aria-label="Bereiche"><button data-go="start" ${r === "start" ? 'aria-current="page"' : ""}>Stationen</button><button data-go="pass" ${r === "pass" ? 'aria-current="page"' : ""}>Mein Pass</button><button data-go="lehrkraft" ${r === "lehrkraft" ? 'aria-current="page"' : ""}>Lehrkraft</button></nav></header>`;
+      <nav class="reiter" aria-label="Bereiche"><button data-go="start" ${r === "start" ? 'aria-current="page"' : ""}>Stationen</button><button data-go="liste" ${r === "liste" ? 'aria-current="page"' : ""}>Checkliste</button><button data-go="pass" ${r === "pass" ? 'aria-current="page"' : ""}>Mein Pass</button><button data-go="lehrkraft" ${r === "lehrkraft" ? 'aria-current="page"' : ""}>Lehrkraft</button></nav></header>`;
   }
   function zeichnen() {
     const a = ansicht.art;
-    app.innerHTML = kopf() + (a === "start" ? startSeite() : a === "pass" ? passSeite() : a === "lehrkraft" ? lehrSeite() : `<div id="inhalt"></div>`);
+    app.innerHTML = kopf() + (a === "start" ? startSeite() : a === "pass" ? passSeite() : a === "lehrkraft" ? lehrSeite() : a === "liste" ? listeSeite() : `<div id="inhalt"></div>`);
     app.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => gehe({ art: b.dataset.go })));
     app.querySelectorAll("[data-station]").forEach(b => b.addEventListener("click", () => stationOeffnen(b.dataset.station)));
     const c = $("#startcheck"); if (c) c.addEventListener("click", checkStarten);
@@ -1076,6 +1160,8 @@ h1, h2, h3, .schrift { font-family: "Delius", "Comic Neue", "Avenir Next", sans-
     const rs = $("#zuruecksetzen"); if (rs) rs.addEventListener("click", zuruecksetzen);
     if (a === "station") stationZeichnen();
     if (a === "lauf") laufZeichnen();
+    if (a === "liste") listeVerbinden();
+    if (a === "test") testZeichnen();
   }
 
   function kachel(s, i, gross) {
@@ -1112,7 +1198,7 @@ h1, h2, h3, .schrift { font-family: "Delius", "Comic Neue", "Avenir Next", sans-
   }
   function zuruecksetzen() {
     const b = $("#zuruecksetzen");
-    if (b.dataset.sicher) { const l = leererStand(); S.st = l.st; S.check = null; S.generalprobe = null; speichern(); gehe({ art: "pass" }); return; }
+    if (b.dataset.sicher) { const l = leererStand(); S.st = l.st; S.check = null; S.generalprobe = null; S.liste = {}; speichern(); gehe({ art: "pass" }); return; }
     b.dataset.sicher = "1"; b.textContent = "Wirklich alles löschen?";
   }
 
@@ -1123,7 +1209,7 @@ h1, h2, h3, .schrift { font-family: "Delius", "Comic Neue", "Avenir Next", sans-
       <tr><th>30 bis 35 Min</th><td>Preis-Maschine, Verwandler, Kassenbon, Detektei</td><td>Promille-Labor, Lager, Kreis-Studio (Geodreieck, Heft). Etwa 25 Min.</td></tr>
       <tr><th>Rest</th><td>Stolperstelle des Tages an die Tafel</td><td>12 Min Generalprobe, 3 Min Merkzettel</td></tr></table>
       <h2 style="margin-top:14px;font-size:22px;color:var(--blau-tief)">Regeln</h2>
-      <ul class="liste"><li>Gerechnet wird im Heft. Der Rechenweg bleibt sichtbar. Bitte stichprobenartig ansehen, die Seite prüft nur Ergebnisse.</li><li>Im Kreis-Studio wird die erste Aufgabe auf Stufe 2 immer mit dem Geodreieck gezeichnet.</li><li>Abzeichen: 3 Aufgaben in Folge auf Stufe 2, ohne Lösungsweg und höchstens mit einer Korrektur.</li><li>Wer fertig ist, geht auf Stufe 3.</li><li>Keine Namen, kein Server, Fortschritt nur auf dem Gerät.</li></ul>
+      <ul class="liste"><li>Gerechnet wird im Heft. Der Rechenweg bleibt sichtbar. Bitte stichprobenartig ansehen, die Seite prüft nur Ergebnisse.</li><li>Im Kreis-Studio wird die erste Aufgabe auf Stufe 2 immer mit dem Geodreieck gezeichnet.</li><li>Abzeichen: 3 Aufgaben in Folge auf Stufe 2, ohne Lösungsweg und höchstens mit einer Korrektur.</li><li>Wer fertig ist, geht auf Stufe 3.</li><li>Reiter Checkliste: 15 Kann-Punkte aus der Probe. Zu jedem Punkt gibt es eine mittelschwere Testaufgabe, richtig gelöst wird abgehakt. Die Checklisten-Generalprobe fragt alle Punkte nacheinander ab, ohne Zeitlimit.</li><li>Keine Namen, kein Server, Fortschritt nur auf dem Gerät.</li></ul>
       <h2 style="margin-top:14px;font-size:22px;color:var(--blau-tief)">Lehrplan</h2>
       <p>LehrplanPLUS Mittelschule, Mathematik 8, Mittlere-Reife-Klasse, Lernbereich 1 Prozentrechnung: Wachstumsfaktor, Rabatt, Skonto, Umsatzsteuer, Brutto, Netto, Tara, Kreisdiagramm, Promille. Extra-Station Kalkulation (Buch S. 22/23): Einkaufspreis, Handlungskosten, Selbstkosten, Gewinn oder Verlust, Umsatzsteuer, vorwärts und rückwärts. Sie läuft nicht im Start-Check und nicht in der Generalprobe mit.</p></section>
       <section class="kachel"><h2 style="font-size:24px;color:var(--blau-tief)">QR für die Klasse</h2><img class="qr" src="qr.png" alt="QR-Code zur Seite"><p class="klein">fhe86.github.io/prozent-training</p>
@@ -1461,7 +1547,117 @@ h1, h2, h3, .schrift { font-family: "Delius", "Comic Neue", "Avenir Next", sans-
     $("#zum-start").addEventListener("click", () => gehe({ art: "start" }));
   }
 
-  window.__stand = () => ({ S, aktuell, lauf });
+  /* ---------- Checkliste ----------
+     Pro Punkt: selbst abhaken oder mit einer mittelschweren Testaufgabe beweisen.
+     S.liste[id] = { kann: true|false, test: "ok"|"nochmal"|undefined } */
+  const HAKEN = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 L10 17.5 L19 7" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  const punkt = id => PUNKTE.find(p => p.id === id);
+  const punktStand = id => S.liste[id] || {};
+  const abgehakt = () => PUNKTE.filter(p => punktStand(p.id).kann);
+  const bewiesen = () => PUNKTE.filter(p => punktStand(p.id).test === "ok");
+
+  function listeSeite() {
+    const n = PUNKTE.length, ab = abgehakt().length, bw = bewiesen().length, offen = n - ab;
+    const letzte = S.listeProbe ? `<p class="klein">Letzte Generalprobe: <b>${S.listeProbe.richtig} von ${S.listeProbe.gesamt}</b> Punkten auf Anhieb richtig.</p>` : "";
+    const zeile = p => {
+      const st = punktStand(p.id);
+      const status = st.test === "ok" ? `<span class="ckstatus ok">Mit Aufgabe bewiesen</span>`
+        : st.test === "nochmal" ? `<span class="ckstatus nochmal">Test ging daneben</span><button class="textlink" data-station="${p.station}">Zur Station ${station(p.station).name}</button>` : "";
+      return `<li class="ckpunkt ${st.kann ? "an" : ""} ${st.test || ""}">
+        <label class="ckbox"><input type="checkbox" data-kann="${p.id}" ${st.kann ? "checked" : ""} aria-label="Kann ich: ${p.text}"><span class="ckhaken">${HAKEN}</span></label>
+        <div class="cktext"><span>${p.text}</span>${status ? `<div class="ckzeile">${status}</div>` : ""}</div>
+        <button class="knopf cktest" data-test="${p.id}">${st.test ? "Nochmal testen" : "Testen"}</button></li>`;
+    };
+    const gruppen = CHECKLISTE.map(g => {
+      const fertig = g.punkte.filter(p => punktStand(p.id).kann).length;
+      return `<section class="kachel ckgruppe farbe${FARBE[g.station]}"><div class="ckkopf">${BILD[g.station]}<h2>${g.thema}</h2><span class="ckzahl ${fertig === g.punkte.length ? "voll" : ""}">${fertig} / ${g.punkte.length}</span></div>
+        <ul class="ckliste">${g.punkte.map(p => zeile(Object.assign({ station: g.station }, p))).join("")}</ul></section>`;
+    }).join("");
+    return `<section class="kachel held ckheld"><div class="ueber">Mathe M8 · Leistungsnachweis Prozent</div><h1>Das musst du für die Probe können</h1>
+      <p>Geh die Liste Punkt für Punkt durch. Drückst du <b>Testen</b>, bekommst du eine mittelschwere Aufgabe genau dazu. Rechne im Heft und tippe das Ergebnis ein. Ist es richtig, wird der Punkt abgehakt. Was du sicher kannst, darfst du auch selbst abhaken.</p>
+      <div class="ckstand"><div class="fortschritt"><i style="width:${ab / n * 100}%"></i></div><span><b>${ab} von ${n}</b> abgehakt, davon ${bw} mit Aufgabe bewiesen</span></div>${letzte}
+      <div class="knoepfe"><button class="knopf gelb" id="ck-alle">Generalprobe: alle ${n} Punkte testen</button>${offen && offen < n ? `<button class="knopf zwei" id="ck-offen">Nur offene Punkte testen (${offen})</button>` : ""}</div></section>
+      <div class="ckraster">${gruppen}</div>`;
+  }
+  function listeVerbinden() {
+    app.querySelectorAll("[data-kann]").forEach(c => c.addEventListener("change", () => {
+      const id = c.dataset.kann;
+      S.liste[id] = c.checked ? Object.assign({}, punktStand(id), { kann: true }) : { kann: false };
+      speichern(); const y = window.scrollY; zeichnen(); window.scrollTo(0, y);
+    }));
+    app.querySelectorAll("[data-test]").forEach(b => b.addEventListener("click", () => testStarten([b.dataset.test], false)));
+    const alle = $("#ck-alle"); if (alle) alle.addEventListener("click", () => testStarten(PUNKTE.map(p => p.id), true));
+    const off = $("#ck-offen"); if (off) off.addEventListener("click", () => testStarten(PUNKTE.filter(p => !punktStand(p.id).kann).map(p => p.id), true));
+  }
+
+  let test = null;
+  function testStarten(reihe, generalprobe) {
+    if (!reihe.length) return;
+    test = { reihe, i: 0, gp: generalprobe, ergebnis: {}, z: neuerZustand(erzeugePunkt(reihe[0])) };
+    ansicht = { art: "test" }; zeichnen(); window.scrollTo(0, 0);
+  }
+  function testZeichnen() {
+    const T = test, inh = $("#inhalt");
+    if (!T) return gehe({ art: "liste" });
+    if (T.i >= T.reihe.length) return testEnde();
+    const p = punkt(T.reihe[T.i]), letzter = T.i === T.reihe.length - 1;
+    inh.innerHTML = `<button class="zurueck" id="test-ab">${T.gp ? "Generalprobe abbrechen" : "Zur Checkliste"}</button>
+      ${T.gp ? `<div class="leiste"><h1 class="schrift" style="font-size:30px;color:var(--blau-tief)">Generalprobe</h1></div><div class="klein">Punkt ${T.i + 1} von ${T.reihe.length}. Ein Versuch pro Aufgabe. Weißt du es nicht, überspring sie.</div><div class="fortschritt"><i style="width:${T.i / T.reihe.length * 100}%"></i></div>` : ""}
+      <div class="ckfrage">${BILD[p.station]}<div><span class="klein">${p.thema}</span><b>${p.text}</b></div></div>
+      <div id="aufgabe"></div>`;
+    $("#test-ab").addEventListener("click", () => { if (T.gp && T.i > 0) return testEnde(); test = null; gehe({ art: "liste" }); });
+    const ziel = $("#aufgabe");
+    const zeichneAufgabe = () => {
+      aufgabeZeichnen(ziel, T.z, {
+        bewerten: (z, ok) => {
+          T.ergebnis[p.id] = ok ? "ok" : "nochmal";
+          S.liste[p.id] = ok ? { kann: true, test: "ok" } : { kann: false, test: "nochmal" };
+          speichern(); zeichneAufgabe();
+        },
+        fehl: () => {},
+        weiter: () => {
+          if (!T.z.fertig) T.ergebnis[p.id] = "weg";
+          if (!T.gp) { test = null; return gehe({ art: "liste" }); }
+          T.i++;
+          if (T.i < T.reihe.length) T.z = neuerZustand(erzeugePunkt(T.reihe[T.i]));
+          testZeichnen(); window.scrollTo(0, 0);
+        }
+      }, { ohneWeg: true, einVersuch: true, weiterText: T.gp ? (T.z.fertig ? (letzter ? "Auswertung" : "Weiter") : "Überspringen") : "Zur Checkliste" });
+      /* Einzeltest: nach dem Ergebnis gleich noch eine Aufgabe zum selben Punkt anbieten. */
+      if (!T.gp && T.z.fertig) {
+        const leiste = ziel.querySelector(".aktionen");
+        if (leiste) {
+          const b = document.createElement("button"); b.className = "knopf zwei"; b.textContent = "Noch eine Aufgabe dazu";
+          b.addEventListener("click", () => { T.z = neuerZustand(erzeugePunkt(p.id)); zeichneAufgabe(); window.scrollTo(0, 0); });
+          leiste.appendChild(b);
+        }
+      }
+    };
+    zeichneAufgabe();
+  }
+  function testEnde() {
+    const T = test, inh = $("#inhalt");
+    const gemacht = T.reihe.filter(id => T.ergebnis[id]);
+    const richtig = gemacht.filter(id => T.ergebnis[id] === "ok").length;
+    const offen = T.reihe.filter(id => T.ergebnis[id] !== "ok");
+    S.listeProbe = { richtig, gesamt: T.reihe.length }; speichern();
+    const zeile = id => {
+      const p = punkt(id), e = T.ergebnis[id] || "weg";
+      const lbl = e === "ok" ? "Sitzt" : e === "nochmal" ? "Noch üben" : "Nicht bearbeitet";
+      return `<div class="passkarte">${BILD[p.station]}<div><span class="klein">${p.thema}</span><br><b style="font-weight:600">${p.text}</b><br><span class="ampel ${e === "ok" ? "gruen" : e === "nochmal" ? "rot" : "gelb"}" style="position:static">${lbl}</span></div></div>`;
+    };
+    inh.innerHTML = `<section class="kachel"><div style="width:110px">${COACH("hupf")}</div><h1 class="schrift" style="font-size:32px;color:var(--blau-tief)">Generalprobe ausgewertet</h1>
+      <p><b>${richtig} von ${T.reihe.length}</b> Punkten auf Anhieb richtig. Das ist keine Note. Es zeigt dir, was du vor der Probe noch üben solltest.</p>
+      ${offen.length ? `<p>Übe die roten Punkte an ihrer Station und teste sie danach in der Checkliste noch einmal.</p>` : `<p>Alles bewiesen. Du bist bereit.</p>`}
+      <div class="passraster">${T.reihe.map(zeile).join("")}</div>
+      <div class="knoepfe"><button class="knopf" id="zur-liste">Zur Checkliste</button>${offen.length ? `<button class="knopf zwei" id="nochmal-offen">Offene Punkte nochmal testen (${offen.length})</button>` : ""}</div></section>`;
+    test = null;
+    $("#zur-liste").addEventListener("click", () => gehe({ art: "liste" }));
+    const n = $("#nochmal-offen"); if (n) n.addEventListener("click", () => testStarten(offen, true));
+    window.scrollTo(0, 0);
+  }
+
+  window.__stand = () => ({ S, aktuell, lauf, test });
   zeichnen();
 })();
 
